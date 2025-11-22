@@ -5,19 +5,19 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class EventDataSource extends CalendarDataSource {
   EventDataSource(List<EventModel> source) {
-    appointments = source ;
+    appointments = source;
   }
 
   @override
   DateTime getStartTime(int index) {
     EventModel event = appointments!.elementAt(index);
-    return event.startTime;
+    return event.startTime!;
   }
 
   @override
   DateTime getEndTime(int index) {
     EventModel event = appointments!.elementAt(index);
-    return event.endTime;
+    return event.endTime!;
   }
 
   @override
@@ -41,7 +41,7 @@ class EventDataSource extends CalendarDataSource {
   @override
   String? getRecurrenceRule(int index) {
     EventModel event = appointments!.elementAt(index);
-    return event.recurrenceRule;  
+    return event.recurrenceRule;
   }
 
   @override

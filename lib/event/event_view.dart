@@ -1,4 +1,5 @@
 import 'package:event_manager/event/event_data_source.dart';
+import 'package:event_manager/event/event_detail_view.dart';
 import 'package:event_manager/event/event_model.dart';
 import 'package:event_manager/event/event_service.dart';
 import 'package:flutter/material.dart';
@@ -38,11 +39,100 @@ class _EventViewState extends State<EventView> {
   Widget build(BuildContext context) {
     final al = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(al.appTitle)),
+      appBar: AppBar(
+        title: Text(al.appTitle),
+        actions: [
+          PopupMenuButton<CalendarView>(
+            onSelected: (value) {
+              setState(() {
+                calendarController.view = value;
+              });
+            },
+            itemBuilder: (context) => CalendarView.values.map((view) {
+              return PopupMenuItem<CalendarView>(
+                value: view,
+                child: ListTile(title: Text(view.name)),
+              );
+            }).toList(),
+            icon: getCalendarViewIcon(calendarController.view!),
+          ),
+          IconButton(
+            onPressed: () {
+              calendarController.displayDate = DateTime.now();
+            },
+            icon: Icon(Icons.today_outlined),
+          ),
+          IconButton(onPressed: loadEvents, icon: Icon(Icons.refresh)),
+        ],
+      ),
       body: SfCalendar(
         controller: calendarController,
         dataSource: EventDataSource(items),
+        monthViewSettings: const MonthViewSettings(
+          appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+        ),
+        onLongPress: (details) {
+          if (details.targetElement == CalendarElement.calendarCell) {
+            final newEvent = EventModel(
+              startTime: details.date!,
+              endTime: details.date!.add(const Duration(hours: 1)),
+              subject: 'SU kien moi',
+            );
+            Navigator.of(context)
+                .push(
+                  MaterialPageRoute(
+                    builder: (context) => EventDetailView(event: newEvent),
+                  ),
+                )
+                .then((value) {
+                  if (value == true) {
+                    loadEvents();
+                  }
+                });
+          }
+        },
+        onTap: (details) {
+          if (details.targetElement == CalendarElement.appointment) {
+            final EventModel event = details.appointments!.first as EventModel;
+            Navigator.of(context)
+                .push(
+                  MaterialPageRoute(
+                    builder: (context) => EventDetailView(event: event),
+                  ),
+                )
+                .then((value) {
+                  if (value == true) {
+                    loadEvents();
+                  }
+                });
+          }
+        },
       ),
     );
+  }
+
+  Icon getCalendarViewIcon(CalendarView view) {
+    switch (view) {
+      case CalendarView.day:
+        return const Icon(Icons.view_day);
+      case CalendarView.week:
+        return const Icon(Icons.view_week);
+      case CalendarView.workWeek:
+        return const Icon(Icons.work_outline);
+      case CalendarView.month:
+        return const Icon(Icons.view_module);
+      case CalendarView.schedule:
+        return const Icon(Icons.schedule);
+      case CalendarView.timelineDay:
+        return const Icon(Icons.timeline);
+      case CalendarView.timelineWeek:
+        return const Icon(Icons.timeline);
+      case CalendarView.timelineWorkWeek:
+        return const Icon(Icons.timeline);
+      case CalendarView.timelineMonth:
+        return const Icon(Icons.timeline);
+      default:
+        return const Icon(Icons.calendar_today);
+    }
   }
 }

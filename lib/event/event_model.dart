@@ -2,8 +2,8 @@ import 'dart:convert';
 
 class EventModel {
   String? id;
-  DateTime startTime;
-  DateTime endTime;
+  DateTime? startTime;
+  DateTime? endTime;
   bool isAllDay;
   String subject;
   String? notes;
@@ -42,8 +42,8 @@ class EventModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'startTime': startTime.microsecondsSinceEpoch,
-      'endTime': endTime.microsecondsSinceEpoch,
+      'startTime': startTime?.toIso8601String(),
+      'endTime': endTime?.toIso8601String(),
       'isAllDay': isAllDay,
       'subject': subject,
       'notes': notes,
@@ -54,8 +54,8 @@ class EventModel {
   factory EventModel.fromMap(Map<String, dynamic> map) {
     return EventModel(
       id: map['id'] != null ? map['id'] as String : null,
-      startTime: DateTime.fromMicrosecondsSinceEpoch(map['startTime'] as int),
-      endTime: DateTime.fromMicrosecondsSinceEpoch(map['endTime'] as int),
+      startTime: DateTime.tryParse(map['startTime'] ?? ''),
+      endTime: DateTime.tryParse(map['endTime'] ?? ''),
       isAllDay: map['isAllDay'] as bool,
       subject: map['subject'] as String,
       notes: map['notes'] != null ? map['notes'] as String : null,
@@ -98,4 +98,14 @@ class EventModel {
         notes.hashCode ^
         recurrenceRule.hashCode;
   }
+}
+
+extension ExtEventModel on EventModel {
+  String get formatedStartTimeString => startTime != null
+      ? '${startTime!.hour}:${startTime!.minute}, ${startTime!.day}/${startTime!.month}/${startTime!.year}'
+      : '';
+
+  String get formatedEndTimeString => endTime != null
+      ? '${endTime!.hour}:${endTime!.minute}, ${endTime!.day}/${endTime!.month}/${endTime!.year}'
+      : '';
 }

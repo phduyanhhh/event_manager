@@ -9,13 +9,13 @@ class EventService {
   Future<List<EventModel>> getAllEvents() async {
     final eventsMap = await db.collection(path).get();
     if (eventsMap != null) {
-        return eventsMap.entries.map((entry) {
-          final eventData = entry.value as Map<String, dynamic>;
-          if(!eventData.containsKey('id')) {
-            eventData['id'] = entry.key.split('/').last;
-          }
-          return EventModel.fromMap(eventData);
-        }).toList();
+      return eventsMap.entries.map((entry) {
+        final eventData = entry.value as Map<String, dynamic>;
+        if (!eventData.containsKey('id')) {
+          eventData['id'] = entry.key.split('/').last;
+        }
+        return EventModel.fromMap(eventData);
+      }).toList();
     }
     return [];
   }

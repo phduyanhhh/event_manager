@@ -33,11 +33,13 @@ class _EventDetailViewState extends State<EventDetailView> {
 
     if (pickedDate != null) {
       if (!mounted) return;
+      final dateTime = isStart
+          ? widget.event.startTime ?? DateTime.now()
+          : widget.event.endTime ?? DateTime.now().add(Duration(hours: 1));
+
       final pickedTime = await showTimePicker(
         context: context,
-        initialTime: TimeOfDay.fromDateTime(
-          isStart ? widget.event.startTime : widget.event.endTime,
-        ),
+        initialTime: TimeOfDay.fromDateTime(dateTime),
       );
 
       if (pickedTime != null) {
@@ -51,8 +53,19 @@ class _EventDetailViewState extends State<EventDetailView> {
           );
           if (isStart) {
             widget.event.startTime = newDateTime;
-            if (widget.event.endTime.isAfter(newDateTime)) {
+
+            if (widget.event.endTime == null ||
+                widget.event.endTime!.isBefore(newDateTime)) {
               widget.event.endTime = newDateTime.add(const Duration(hours: 1));
+            }
+          } else {
+            widget.event.endTime = newDateTime;
+
+            if (widget.event.startTime == null ||
+                widget.event.startTime!.isAfter(newDateTime)) {
+              widget.event.startTime = newDateTime.subtract(
+                const Duration(hours: 1),
+              );
             }
           }
         });
@@ -82,6 +95,62 @@ class _EventDetailViewState extends State<EventDetailView> {
       appBar: AppBar(
         title: Text(
           widget.event.id == null ? 'Them su kien' : 'Chi tiet su kien',
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            TextField(
+              controller: subjectController,
+              decoration: const InputDecoration(labelText: 'Ten su kien'),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              title: const Text('SU kien ca ngay'),
+              trailing: Switch(
+                value: widget.event.isAllDay,
+                onChanged: (value) {
+                  setState(() {
+                    widget.event.isAllDay = value;
+                  });
+                },
+              ),
+            ),
+            if (!widget.event.isAllDay) ...[
+              const SizedBox(height: 16),
+              ListTile(
+                title: Text('Bat dau: ${widget.event.formatedStartTimeString}'),
+                subtitle: Text(widget.event.startTime.toString()),
+                onTap: () => _pickDatetime(isStart: true),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                title: Text('Bat dau: ${widget.event.formatedEndTimeString}'),
+                subtitle: Text(widget.event.endTime.toString()),
+                onTap: () => _pickDatetime(isStart: false),
+              ),
+            ],
+            TextField(
+              controller: notesController,
+              decoration: const InputDecoration(labelText: 'Ghi chu'),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                if (widget.event.id != null)
+                  FilledButton.tonalIcon(
+                    onPressed: _deleteEvent,
+                    label: const Text('Xoa su kien'),
+                  ),
+                FilledButton.icon(
+                  onPressed: _saveEvent,
+                  label: const Text('Luu su kien'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
